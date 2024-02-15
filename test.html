@@ -2,21 +2,21 @@
 <head>
     <style>
         canvas {
-            border: 1px solid black;
+            border: 1px solid black; /* sys */
         }
     </style>
 </head>
 <body style="display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
     <canvas id="canvas" width="500" height="500"></canvas>
-    <audio id="bounceSound" src="zvon.mp3"></audio>
+    <audio id="bounceSound" src=""></audio>
 <script>
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
-let bounceSounds = []; // Створюємо масив для звуків
+let bounceSounds = []; 
 for (let i = 0; i < 10; i++) {
-    bounceSounds[i] = document.getElementById("bounceSound"); // Додаємо звуки до масиву
+    bounceSounds[i] = document.getElementById("bounceSound"); 
 }
-let currentSound = 0; // Індекс поточного звуку
+let currentSound = 0; 
 let x = 250;
 let y = 250;
 let r = 10;
@@ -32,17 +32,17 @@ let trail = [];
 let maxTrail = Infinity;
 let firstBounce = true;
 let bounceCoefficient = 1;
-let isBouncing = false; // змінна для відстеження стану відскоку
+let isBouncing = false; 
 
 let dt = 0.5;
 let trailSize = 10;
 let initialBallSize = 10;
 
-function playBounceSound() { // Функція для відтворення звуку
-    bounceSounds[currentSound].pause(); // Зупиніть відтворення поточного звуку
-    bounceSounds[currentSound].currentTime = 0; // Скиньте час відтворення до початку
-    bounceSounds[currentSound].play(); // Відтворіть звук
-    currentSound = (currentSound + 1) % bounceSounds.length; // Перейдіть до наступного звуку в масиві
+function playBounceSound() { 
+    bounceSounds[currentSound].pause(); 
+    bounceSounds[currentSound].currentTime = 0; 
+    bounceSounds[currentSound].play(); 
+    currentSound = (currentSound + 1) % bounceSounds.length; 
 }
 
 function drawBall() {
@@ -118,7 +118,7 @@ function updateBall() {
 
         playBounceSound();
 
-        if (!isBouncing) { // Змінено: збільшуємо м'яч тільки при відскоку
+        if (!isBouncing) { 
             trailSize += 2;
             if (trailSize > 600) {
                 trailSize = 600;
@@ -134,17 +134,15 @@ function updateBall() {
                 firstBounce = false;
             }
 			
-			// Зміни в цьому рядку для забезпечення постійної швидкості
 			let speed = Math.sqrt(vx * vx + vy * vy);
 			vx = (vx / speed) * constantSpeed;
 			vy = (vy / speed) * constantSpeed;
             vy *= 1.2;
 			vx *= 1.2;
-			// vy *= bounceCoefficient; // Закоментуйте цей рядок
         }
-        isBouncing = true; // встановлюємо стан відскоку в true
+        isBouncing = true; 
     } else {
-        isBouncing = false; // встановлюємо стан відскоку в false
+        isBouncing = false; 
     }
 
     hue += 1;
@@ -153,9 +151,7 @@ function updateBall() {
     }
 }
 
-// Додайте цей рядок під оголошення констант для постійної швидкості
-const constantSpeed = 20; // Замініть на бажану постійну швидкість
-
+const constantSpeed = 20; 
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
