@@ -1,0 +1,172 @@
+<html>
+<head>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body style="display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <audio id="bounceSound" src="zvon.mp3"></audio>
+<script>
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let bounceSounds = []; // Створюємо масив для звуків
+for (let i = 0; i < 10; i++) {
+    bounceSounds[i] = document.getElementById("bounceSound"); // Додаємо звуки до масиву
+}
+let currentSound = 0; // Індекс поточного звуку
+let x = 250;
+let y = 250;
+let r = 10;
+let vx = 0;
+let vy = 5;
+let g = 1;
+let color = "black";
+let cx = 250;
+let cy = 250;
+let cr = 200;
+let hue = 0;
+let trail = [];
+let maxTrail = Infinity;
+let firstBounce = true;
+let bounceCoefficient = 1;
+let isBouncing = false; // змінна для відстеження стану відскоку
+
+let dt = 0.5;
+let trailSize = 10;
+let initialBallSize = 10;
+
+function playBounceSound() { // Функція для відтворення звуку
+    bounceSounds[currentSound].pause(); // Зупиніть відтворення поточного звуку
+    bounceSounds[currentSound].currentTime = 0; // Скиньте час відтворення до початку
+    bounceSounds[currentSound].play(); // Відтворіть звук
+    currentSound = (currentSound + 1) % bounceSounds.length; // Перейдіть до наступного звуку в масиві
+}
+
+function drawBall() {
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.closePath();
+    ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+    ctx.stroke();
+}
+
+function drawBackground() {
+    ctx.beginPath();
+    ctx.fillStyle = "black";
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawCircle() {
+    ctx.save();
+    ctx.beginPath();
+    ctx.fillStyle = "white";
+    ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "yellow";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.closePath();
+    ctx.restore();
+}
+
+function drawRainbow() {
+    trail.push({ x: x, y: y, color: `hsl(${hue}, 100%, 50%)`, size: trailSize });
+
+    if (trail.length > maxTrail) {
+        trail.shift();
+    }
+
+    while (trail.length > 0 && trail.length > 1000) {
+        trail.shift();
+    }
+
+    for (let i = 0; i < trail.length; i++) {
+        let t = trail[i];
+        ctx.beginPath();
+        ctx.fillStyle = "black";
+        ctx.arc(t.x, t.y, t.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+        ctx.strokeStyle = t.color;
+        ctx.stroke();
+    }
+}
+
+function updateBall() {
+    vy += g * dt;
+    x += vx * dt;
+    y += vy * dt;
+
+    let d = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+
+    if (d > cr - r) {
+        let angle = Math.atan2(y - cy, x - cx);
+        let nx = Math.cos(angle);
+        let ny = Math.sin(angle);
+        let dot = vx * nx + vy * ny;
+        vx = vx - 2 * dot * nx;
+        vy = vy - 2 * dot * ny;
+        x = cx + (cr - r) * nx;
+        y = cy + (cr - r) * ny;
+
+        playBounceSound();
+
+        if (!isBouncing) { // Змінено: збільшуємо м'яч тільки при відскоку
+            trailSize += 2;
+            if (trailSize > 600) {
+                trailSize = 600;
+            }
+
+            r += 2;
+            if (r > 600) {
+                r = 600;
+            }
+
+            if (firstBounce) {
+                vx += 1;
+                firstBounce = false;
+            }
+			
+			// Зміни в цьому рядку для забезпечення постійної швидкості
+			let speed = Math.sqrt(vx * vx + vy * vy);
+			vx = (vx / speed) * constantSpeed;
+			vy = (vy / speed) * constantSpeed;
+            vy *= 1.2;
+			vx *= 1.2;
+			// vy *= bounceCoefficient; // Закоментуйте цей рядок
+        }
+        isBouncing = true; // встановлюємо стан відскоку в true
+    } else {
+        isBouncing = false; // встановлюємо стан відскоку в false
+    }
+
+    hue += 1;
+    if (hue > 360) {
+        hue = 0;
+    }
+}
+
+// Додайте цей рядок під оголошення констант для постійної швидкості
+const constantSpeed = 20; // Замініть на бажану постійну швидкість
+
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground();
+    drawCircle();
+    drawRainbow();
+    drawBall();
+    updateBall();
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
