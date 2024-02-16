@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Гра з обертальними вісями</title>
+  <style>
+    /* Стилі для по/лотна */
+    #canvas {
+      width: 500px;
+      height: 300px;
+      background-color: black;
+      margin: auto;
+      display: block;
+    }
+
+    /* Стилі для вхідних полів */
+    #speed, #length {
+      width: 100px;
+      margin: 10px;
+    }
+
+    /* Стилі для кнопки */
+    #update {
+      width: 100px;
+      margin: 10px;
+      background-color: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+    <!-- Полотно для малювання вісей -->
+  <canvas id="canvas" width="800" height="600"></canvas>
+
+
+  <!-- Вхідні поля для введення співвідношень швидкостей і довжин -->
+  <input id="speed" type="text" placeholder="Співвідношення швидкостей">
+  <input id="length" type="text" placeholder="Співвідношення довжин">
+
+  <!-- Кнопка для оновлення параметрів -->
+  <button id="update" onclick="updateParameters()">Оновити</button>
+
+  <!-- Підключення скрипта JavaScript -->
+<script>
+// Отримати елементи з HTML
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+var speedInput = document.getElementById("speed");
+var lengthInput = document.getElementById("length");
+
+// Встановити початкові значення параметрів
+var speedRatio = -11 / 5; // Співвідношення швидкостей вісей
+var lengthRatio = 1 / 2; // Співвідношення довжин вісей
+var angle1 = 0; // Кут першої вісі в радіанах
+var angle2 = 0; // Кут другої вісі в радіанах
+var radius1 = 200; // Радіус першої вісі в пікселях
+var radius2 = 100; // Радіус другої вісі в пікселях
+var x1, y1, x2, y2; // Координати кінців вісей
+var fps = 60; // Частота кадрів в секунду
+var trail = []; // Масив для зберігання сліду за червоними крапками
+
+// Функція для обчислення координат кінців вісей
+function calculateCoordinates() {
+  // Обчислити кут другої вісі зі співвідношення швидкостей
+  angle2 = angle1 * speedRatio;
+
+  // Обчислити координати першого кінця вісі
+  x1 = canvas.width / 2 + radius1 * Math.cos(angle1);
+  y1 = canvas.height / 2 + radius1 * Math.sin(angle1);
+
+  // Обчислити координати другого кінця вісі
+  x2 = x1 + radius2 * Math.cos(angle2);
+  y2 = y1 + radius2 * Math.sin(angle2);
+}
+
+// Функція для малювання вісей на полотні
+function drawAxes() {
+  // Очистити полотно
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Намалювати першу вісь
+  ctx.beginPath();
+  ctx.moveTo(canvas.width / 2, canvas.height / 2);
+  ctx.lineTo(x1, y1);
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 5;
+  ctx.stroke();
+
+  // Намалювати другу вісь
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 5;
+  ctx.stroke();
+
+  // Намалювати червоні крапки на кінцях вісей
+  ctx.beginPath();
+  ctx.arc(x1, y1, 5, 0, 2 * Math.PI);
+  ctx.fillStyle = "red";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(x2, y2, 5, 0, 2 * Math.PI);
+  ctx.fillStyle = "red";
+  ctx.fill();
+
+  // Додати поточні координати червоних крапок до масиву сліду
+  trail.push({x1: x1, y1: y1, x2: x2, y2: y2});
+
+  // Обмежити довжину масиву сліду до 100 елементів
+  if (trail.length > 10000) {
+    trail.shift();
+  }
+
+  // Намалювати слід за червоними крапками
+  ctx.beginPath();
+  for (var i = 0; i < trail.length; i++) {
+    // Отримати координати червоних крапок з масиву сліду
+    var t = trail[i];
+
+    // Намалювати лінію між червоними крапками
+    ctx.moveTo(t.x1, t.y1);
+    ctx.lineTo(t.x2, t.y2);
+
+    // Задати колір і товщину лінії
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1;
+  }
+  // Завершити малювання сліду
+  ctx.stroke();
+}
+
+// Функція для оновлення кута першої вісі
+function updateAngle() {
+  // Збільшити кут на 0.01 радіана
+  angle1 += 0.01;
+
+  // Обмежити кут від 0 до 2 * Math.PI
+  if (angle1 > 2 * Math.PI) {
+    angle1 -= 2 * Math.PI;
+  }
+}
+
+// Функція для оновлення параметрів з вхідних полів
+function updateParameters() {
+  // Отримати значення з вхідних полів
+  var speedValue = speedInput.value;
+  var lengthValue = lengthInput.value;
+
+  // Перевірити, чи значення є дійсними числами
+  if (isNaN(speedValue) || isNaN(lengthValue)) {
+    alert("Будь ласка, введіть дійсні числа");
+    return;
+  }
+
+  // Перевірити, чи значення не дорівнюють нулю
+  if (speedValue == 0 || lengthValue == 0) {
+    alert("Будь ласка, введіть ненульові значення");
+    return;
+  }
+
+  // Перевести значення в числа
+  speedValue = Number(speedValue);
+  lengthValue = Number(lengthValue);
+
+  // Оновити співвідношення швидкостей і довжин
+  speedRatio = speedValue;
+  lengthRatio = lengthValue;
+
+  // Оновити радіуси вісей зі співвідношення довжин
+  radius2 = radius1 * lengthRatio;
+}
+
+// Функція для анімації гри
+function animate() {
+  // Обчислити координати кінців вісей
+  calculateCoordinates();
+
+  // Намалювати вісі на полотні
+  drawAxes();
+
+  // Оновити кут першої вісі
+  updateAngle();
+
+  // Викликати функцію анімації знову через 1000 / fps мілісекунд
+  setTimeout(animate, 1000 / fps);
+}
+
+// Запустити гру
+animate();
+  </script>
+</head>
+</body>
+</html>
