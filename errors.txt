@@ -4,3 +4,5 @@ home
 checkpount
 near
 lightflight
+
+diamond / gold / iron / platium
